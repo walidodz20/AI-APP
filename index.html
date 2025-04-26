@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Application d'Intelligence Artificielle</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #ebefff;
+      --primary-hover: #3a56d4;
+      --secondary: #f9fafe;
+      --text-dark: #1f2937;
+      --text-light: #6b7280;
+      --border: #e0e7ff;
+      --shadow: rgba(0, 0, 0, 0.1);
+      --success: #10b981;
+      --error: #ef4444;
+      --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f0f4ff, #ffffff);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      color: var(--text-dark);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 1000px;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+      padding: 40px;
+      margin: 20px 0;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: var(--transition);
+    }
+    
+    .container.loaded {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 50px;
+      position: relative;
+      padding-bottom: 20px;
+    }
+    
+    .header:after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), #a5b4fc);
+      border-radius: 4px;
+    }
+    
+    .header h1 {
+      font-size: 2.8rem;
+      color: var(--text-dark);
+      margin-bottom: 15px;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: all 0.6s ease-out;
+    }
+    
+    .header.visible h1 {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .header h3 {
+      font-size: 1.3rem;
+      color: var(--text-light);
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.6s ease-out 0.2s;
+    }
+    
+    .header.visible h3 {
+      opacity: 0.9;
+      transform: translateY(0);
+    }
+    
+    .form-section {
+      background-color: var(--secondary);
+      border-radius: 18px;
+      padding: 35px;
+      margin-bottom: 30px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.03);
+      transition: var(--transition);
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    
+    .form-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .form-section:hover {
+      box-shadow: 0 14px 40px rgba(0,0,0,0.07);
+      transform: translateY(-5px);
+    }
+    
+    .form-section h2 {
+      color: var(--text-dark);
+      font-size: 1.5rem;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .form-section h2:before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 28px;
+      background: linear-gradient(to bottom, var(--primary), #7b96ff);
+      margin-right: 15px;
+      border-radius: 4px;
+    }
+    
+    .drop-zone {
+      border: 2px dashed rgba(67, 97, 238, 0.3);
+      padding: 40px 25px;
+      border-radius: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-bottom: 25px;
+      color: var(--primary);
+      position: relative;
+      overflow: hidden;
+      background-color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .drop-zone:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, rgba(79, 109, 253, 0.05) 0%, rgba(79, 109, 253, 0) 100%);
+      opacity: 0;
+      transition: var(--transition);
+      z-index: 0;
+    }
+    
+    .drop-zone:hover {
+      border-color: var(--primary);
+      transform: scale(1.01);
+    }
+    
+    .drop-zone:hover:before {
+      opacity: 1;
+    }
+    
+    .drop-zone.dragover {
+      background-color: var(--primary-light);
+      border-color: var(--primary);
+      transform: scale(1.02);
+      box-shadow: 0 8px 25px rgba(67, 97, 238, 0.15);
+    }
+    
+    .drop-zone * {
+      position: relative;
+      z-index: 2;
+    }
+    
+    .drop-zone p {
+      font-size: 1.1rem;
+      margin: 10px 0 0;
+      color: var(--text-light);
+      transition: var(--transition);
+    }
+    
+    .drop-zone:hover p {
+      color: var(--primary);
+    }
+    
+    .drop-zone .file-icon {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+      color: var(--primary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background-color: rgba(67, 97, 238, 0.1);
+      transition: var(--transition);
+    }
+    
+    .drop-zone:hover .file-icon {
+      transform: scale(1.1);
+      background-color: rgba(67, 97, 238, 0.15);
+    }
+    
+    .input-group {
+      margin-bottom: 25px;
+      position: relative;
+    }
+    
+    input[type="text"] {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      transition: var(--transition);
+      background-color: white;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.01);
+    }
+    
+    input[type="text"]:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 4px 15px rgba(79, 141, 253, 0.15);
+    }
+    
+    input[type="text"]::placeholder {
+      color: #a9aeb8;
+      transition: var(--transition);
+    }
+    
+    input[type="text"]:focus::placeholder {
+      opacity: 0.7;
+    }
+    
+    button {
+      width: 100%;
+      background: linear-gradient(90deg, var(--primary), #6d83f2);
+      color: white;
+      border: none;
+      padding: 16px;
+      font-size: 1.1rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 20px rgba(67, 97, 238, 0.15);
+    }
+    
+    button:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: var(--transition);
+    }
+    
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 25px rgba(67, 97, 238, 0.25);
+    }
+    
+    button:hover:before {
+      left: 100%;
+      transition: 0.8s;
+    }
+    
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 5px 15px rgba(67, 97, 238, 0.15);
+    }
+    
+    button i {
+      margin-right: 10px;
+      font-size: 1.2rem;
+    }
+    
+    #result {
+      background: white;
+      border: 1px solid var(--border);
+      padding: 35px;
+      border-radius: 18px;
+      margin-top: 40px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.03);
+      opacity: 0;
+      transform: translateY(30px);
+      transition: var(--transition);
+    }
+    
+    #result.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    #result h2 {
+      color: var(--text-dark);
+      font-size: 1.5rem;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+    }
+    
+    #result h2:before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 28px;
+      background: linear-gradient(to bottom, #10b981, #34d399);
+      margin-right: 15px;
+      border-radius: 4px;
+    }
+    
+    .result-box {
+      background: #f9fafb;
+      border-radius: 14px;
+      padding: 25px;
+      margin-top: 20px;
+      border-left: 4px solid var(--primary);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1) 0.1s;
+    }
+    
+    .result-box:after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100px;
+      height: 100px;
+      background: radial-gradient(circle, rgba(67, 97, 238, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
+      border-radius: 50%;
+    }
+    
+    .result-box.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    #summary,
+    #answer,
+    #image-caption {
+      color: var(--text-dark);
+      white-space: pre-wrap;
+      font-size: 1.05rem;
+      line-height: 1.8;
+    }
+    
+    .result-title {
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 15px;
+      font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+    }
+    
+    .result-title i {
+      margin-right: 10px;
+      font-size: 1.2rem;
+    }
+    
+    .loading {
+      display: flex;
+      align-items: center;
+      color: var(--text-light);
+      font-style: italic;
+    }
+    
+    .loading:before {
+      content: '';
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(79, 141, 253, 0.3);
+      border-top: 3px solid var(--primary);
+      border-radius: 50%;
+      margin-right: 10px;
+      animation: spin 1s linear infinite;
+    }
+    
+    .file-selected {
+      background-color: rgba(16, 185, 129, 0.05);
+      border-color: var(--success);
+    }
+    
+    .file-selected p {
+      color: var(--success);
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4);
+      }
+      70% {
+        box-shadow: 0 0 0 15px rgba(67, 97, 238, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(67, 97, 238, 0);
+      }
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .container {
+        padding: 30px;
+      }
+      
+      .form-section {
+        padding: 25px;
+      }
+      
+      .header h1 {
+        font-size: 2.2rem;
+      }
+      
+      .drop-zone {
+        padding: 30px 20px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+      
+      .container {
+        padding: 25px;
+        margin: 10px 0;
+      }
+      
+      .header h1 {
+        font-size: 1.9rem;
+      }
+      
+      .header h3 {
+        font-size: 1.1rem;
+      }
+      
+      button {
+        padding: 14px;
+        font-size: 1rem;
+      }
+      
+      .form-section {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Application d'Intelligence Artificielle</h1>
+      <h3>Walid</h3>
+    </div>
+
+    <!-- Résumé Section -->
+    <section class="form-section">
+      <h2>Résumé de Document</h2>
+      <form id="analyze-form">
+        <div id="analyze-drop" class="drop-zone">
+          <div class="file-icon"><i class="fas fa-file-alt"></i></div>
+          <p>Glissez-déposez votre fichier ici ou cliquez pour choisir</p>
+        </div>
+        <input type="file" id="file-analyze" accept=".pdf, .docx, .txt, image/*" required hidden>
+        <button type="submit">
+          <i class="fas fa-search"></i>
+          Analyser
+        </button>
+      </form>
+    </section>
+
+    <!-- Question Section -->
+    <section class="form-section">
+      <h2>Poser une Question</h2>
+      <form id="ask-form">
+        <div id="ask-drop" class="drop-zone">
+          <div class="file-icon"><i class="fas fa-file-alt"></i></div>
+          <p>Glissez-déposez votre fichier ici ou cliquez pour choisir</p>
+        </div>
+        <input type="file" id="file-ask" accept=".pdf, .docx, .txt, image/*" required hidden>
+        <div class="input-group">
+          <input type="text" id="question" name="question" placeholder="Posez votre question sur le document" required>
+        </div>
+        <button type="submit">
+          <i class="fas fa-question-circle"></i>
+          Poser la Question
+        </button>
+      </form>
+    </section>
+
+    <!-- Résultat -->
+    <section id="result">
+      <h2>Résultat</h2>
+      <div id="summary-container" class="result-box hidden">
+        <div class="result-title"><i class="fas fa-file-alt"></i> Résumé du Document</div>
+        <div id="summary"></div>
+      </div>
+      <div id="answer-container" class="result-box hidden">
+        <div class="result-title"><i class="fas fa-comment-dots"></i> Réponse à Votre Question</div>
+        <div id="answer"></div>
+      </div>
+      <div id="image-caption-container" class="result-box hidden">
+        <div class="result-title"><i class="fas fa-image"></i> Légende de L'image</div>
+        <div id="image-caption"></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Animation on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(() => {
+        document.querySelector('.container').classList.add('loaded');
+        document.querySelector('.header').classList.add('visible');
+        
+        // Staggered animation for sections
+        const sections = document.querySelectorAll('.form-section, #result');
+        sections.forEach((section, index) => {
+          setTimeout(() => {
+            section.classList.add('visible');
+          }, 300 + (index * 150));
+        });
+      }, 100);
+    });
+    
+    // Enhanced file drop zone functionality
+    function enableDropZone(dropZoneId, fileInputId) {
+      const dropZone = document.getElementById(dropZoneId);
+      const fileInput = document.getElementById(fileInputId);
+      
+      // Add ripple effect on click
+      dropZone.addEventListener('mousedown', createRipple);
+      
+      dropZone.addEventListener('click', () => fileInput.click());
+      
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      });
+      
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+      });
+      
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        createRipple(e);
+        
+        if (e.dataTransfer.files.length) {
+          fileInput.files = e.dataTransfer.files;
+          updateDropZoneUI(dropZone, fileInput.files[0]);
+        }
+      });
+      
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) {
+          updateDropZoneUI(dropZone, fileInput.files[0]);
+        }
+      });
+    }
+    
+    function createRipple(event) {
+      const button = event.currentTarget;
+      
+      const circle = document.createElement("span");
+      const diameter = Math.max(button.clientWidth, button.clientHeight);
+      const radius = diameter / 2;
+      
+      const rect = button.getBoundingClientRect();
+      
+      circle.style.width = circle.style.height = `${diameter}px`;
+      circle.style.left = `${event.clientX - rect.left - radius}px`;
+      circle.style.top = `${event.clientY - rect.top - radius}px`;
+      circle.classList.add("ripple");
+      
+      const ripple = button.getElementsByClassName("ripple")[0];
+      
+      if (ripple) {
+        ripple.remove();
+      }
+      
+      button.appendChild(circle);
+      
+      // CSS for ripple
+      const style = document.createElement('style');
+      style.innerHTML = `
+        .ripple {
+          position: absolute;
+          background-color: rgba(255, 255, 255, 0.4);
+          border-radius: 50%;
+          transform: scale(0);
+          animation: ripple 0.6s linear;
+          pointer-events: none;
+        }
+        
+        @keyframes ripple {
+          to {
+            transform: scale(4);
+            opacity: 0;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      setTimeout(() => {
+        circle.remove();
+      }, 600);
+    }
+    
+    function updateDropZoneUI(dropZone, file) {
+      if (file) {
+        // Animate file selection
+        dropZone.classList.add('pulse');
+        setTimeout(() => dropZone.classList.remove('pulse'), 2000);
+        
+        dropZone.classList.add('file-selected');
+        const fileIcon = getFileIcon(file.type);
+        
+        // Create file icon element
+        const iconElement = dropZone.querySelector('.file-icon');
+        iconElement.innerHTML = fileIcon;
+        
+        // Text with file name and animation
+        dropZone.querySelector('p').innerHTML = `Fichier sélectionné : <strong>${file.name}</strong>`;
+        
+        // Add checkmark animation
+        const checkmark = document.createElement('span');
+        checkmark.innerHTML = '<i class="fas fa-check-circle"></i>';
+        checkmark.style.color = '#10b981';
+        checkmark.style.marginLeft = '10px';
+        checkmark.style.opacity = '0';
+        checkmark.style.transition = 'all 0.5s ease';
+        
+        dropZone.querySelector('p').appendChild(checkmark);
+        
+        setTimeout(() => {
+          checkmark.style.opacity = '1';
+          checkmark.style.transform = 'scale(1.2)';
+        }, 100);
+        
+        setTimeout(() => {
+          checkmark.style.transform = 'scale(1)';
+        }, 400);
+      } else {
+        dropZone.classList.remove('file-selected');
+        dropZone.querySelector('.file-icon').innerHTML = '<i class="fas fa-file-alt"></i>';
+        dropZone.querySelector('p').textContent = 'Glissez-déposez votre fichier ici ou cliquez pour choisir';
+      }
+    }
+    
+    function getFileIcon(fileType) {
+      if (fileType.startsWith('image/')) return '<i class="fas fa-image"></i>';
+      if (fileType === 'application/pdf') return '<i class="fas fa-file-pdf"></i>';
+      if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return '<i class="fas fa-file-word"></i>';
+      if (fileType === 'text/plain') return '<i class="fas fa-file-alt"></i>';
+      return '<i class="fas fa-file"></i>';
+    }
+    
+    // Initialize drop zones
+    enableDropZone('analyze-drop', 'file-analyze');
+    enableDropZone('ask-drop', 'file-ask');
+    
+    // Add button press effect
+    document.querySelectorAll('button').forEach(button => {
+      button.addEventListener('mousedown', function() {
+        this.style.transform = 'scale(0.98)';
+      });
+      
+      button.addEventListener('mouseup', function() {
+        this.style.transform = '';
+      });
+      
+      button.addEventListener('mouseleave', function() {
+        this.style.transform = '';
+      });
+    });
+    
+    // Analyze Form Logic
+    document.getElementById('analyze-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const realFileInput = document.getElementById('file-analyze');
+      const file = realFileInput.files[0];
+      const summaryContainer = document.getElementById('summary-container');
+      const summaryDiv = document.getElementById('summary');
+      const imageContainer = document.getElementById('image-caption-container');
+      const imageDiv = document.getElementById('image-caption');
+      const answerContainer = document.getElementById('answer-container');
+      
+      // Reset results
+      summaryDiv.innerHTML = '';
+      imageDiv.innerHTML = '';
+      document.getElementById('answer').innerHTML = '';
+      summaryContainer.classList.add('hidden');
+      imageContainer.classList.add('hidden');
+      answerContainer.classList.add('hidden');
+      
+      if (!file) return;
+      
+      // Show the result section with animation
+      document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+      
+      const isImage = file.type.startsWith('image/');
+      const isDocument = file.type === 'application/pdf' || 
+                         file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
+                         file.type === 'text/plain';
+      
+      const formData = new FormData();
+      
+      if (isImage) {
+        imageContainer.classList.remove('hidden');
+        imageDiv.innerHTML = '<span class="loading">Analyse de l\'image en cours...</span>';
+        formData.append('image', file);
+        
+        try {
+          const response = await fetch('/interpret_image', { method: 'POST', body: formData });
+          const data = await response.json();
+          
+          setTimeout(() => {
+            if (data.description) {
+              imageDiv.innerText = data.description;
+            } else {
+              imageDiv.innerText = 'Erreur: ' + (data.error || 'Réponse inattendue du serveur');
+            }
+            imageContainer.classList.add('show');
+          }, 500);
+        } catch (error) {
+          setTimeout(() => {
+            imageDiv.innerText = 'Erreur de connexion: ' + error.message;
+            imageContainer.classList.add('show');
+          }, 500);
+        }
+      } else if (isDocument) {
+        summaryContainer.classList.remove('hidden');
+        summaryDiv.innerHTML = '<span class="loading">Analyse du document en cours...</span>';
+        formData.append('file', file);
+        
+        try {
+          const response = await fetch('/analyze', { method: 'POST', body: formData });
+          const data = await response.json();
+          
+          setTimeout(() => {
+            if (data.summary) {
+              summaryDiv.innerText = Array.isArray(data.summary) ? 
+                                  data.summary[0].summary_text : 
+                                  data.summary.summary_text || data.summary;
+            } else {
+              summaryDiv.innerText = 'Erreur: ' + (data.error || 'Réponse inattendue du serveur');
+            }
+            summaryContainer.classList.add('show');
+          }, 500);
+        } catch (error) {
+          setTimeout(() => {
+            summaryDiv.innerText = 'Erreur de connexion: ' + error.message;
+            summaryContainer.classList.add('show');
+          }, 500);
+        }
+      } else {
+        summaryContainer.classList.remove('hidden');
+        summaryDiv.innerHTML = 'Veuillez télécharger un fichier valide (document ou image).';
+        setTimeout(() => {
+          summaryContainer.classList.add('show');
+        }, 500);
+      }
+    });
+    
+    // Ask Form Logic
+    document.getElementById('ask-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const realFileInput = document.getElementById('file-ask');
+      const file = realFileInput.files[0];
+      const question = document.getElementById('question').value;
+      const answerContainer = document.getElementById('answer-container');
+      const answerDiv = document.getElementById('answer');
+      
+      // Reset other results
+      document.getElementById('summary').innerHTML = '';
+      document.getElementById('image-caption').innerHTML = '';
+      document.getElementById('summary-container').classList.add('hidden');
+      document.getElementById('image-caption-container').classList.add('hidden');
+      
+      // Show the result section with animation
+      document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+      
+      answerContainer.classList.remove('hidden');
+      answerDiv.innerHTML = '<span class="loading">Recherche de réponse...</span>';
+      
+      if (!file || !question) return;
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('question', question);
+      
+      try {
+        const response = await fetch('/ask', { method: 'POST', body: formData });
+        const data = await response.json();
+        
+        setTimeout(() => {
+          if (data.answer) {
+            answerDiv.innerText = data.answer;
+          } else {
+            answerDiv.innerText = 'Erreur: ' + (data.error || 'Réponse inattendue du serveur');
+          }
+          answerContainer.classList.add('show');
+        }, 500);
+      } catch (error) {
+        setTimeout(() => {
+          answerDiv.innerText = 'Erreur de connexion: ' + error.message;
+          answerContainer.classList.add('show');
+        }, 500);
+      }
+    });
+    
+    // Add floating animation to file icons
+    setInterval(() => {
+      const fileIcons = document.querySelectorAll('.file-icon');
+      fileIcons.forEach(icon => {
+        icon.style.animation = 'float 3s ease-in-out infinite';
+      });
+    }, 1000);
+  </script>
+</body>
+</html>
