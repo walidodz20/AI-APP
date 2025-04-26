@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+huggingface_hub
+transformers
+PyPDF2
+python-docx
+python-multipart
+Pillow
